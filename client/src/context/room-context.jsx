@@ -36,8 +36,9 @@ export function RoomProvider({ children }) {
   const [round, setRound] = useState(null) // { roundNumber, totalRounds, previewUrl, duration }
   const [remaining, setRemaining] = useState(0)
   const [scores, setScores] = useState([]) // classement temps réel
-  const [answerResult, setAnswerResult] = useState(null) // { correct, points }
+  const [answerResult, setAnswerResult] = useState(null) // { correct, points, rank }
   const [hasAnswered, setHasAnswered] = useState(false)
+  const [found, setFound] = useState([]) // joueurs ayant trouvé ce round { playerId, pseudo, rank }
   const [reveal, setReveal] = useState(null) // { correctAnswer, ... }
   const [history, setHistory] = useState([]) // morceaux déjà passés
   const [gameOver, setGameOver] = useState(null) // { finalScores, winner }
@@ -72,6 +73,12 @@ export function RoomProvider({ children }) {
       setAnswerResult(null)
       setHasAnswered(false)
       setReveal(null)
+      setFound([])
+    }
+    function onPlayerFound(payload) {
+      setFound((prev) =>
+        prev.some((p) => p.playerId === payload.playerId) ? prev : [...prev, payload],
+      )
     }
     function onTimerTick({ remaining: value }) {
       setRemaining(value)
@@ -108,6 +115,7 @@ export function RoomProvider({ children }) {
     socket.on('round_start', onRoundStart)
     socket.on('timer_tick', onTimerTick)
     socket.on('answer_result', onAnswerResult)
+    socket.on('player_found', onPlayerFound)
     socket.on('round_end', onRoundEnd)
     socket.on('scores_update', onScoresUpdate)
     socket.on('game_over', onGameOver)
@@ -120,6 +128,7 @@ export function RoomProvider({ children }) {
       socket.off('round_start', onRoundStart)
       socket.off('timer_tick', onTimerTick)
       socket.off('answer_result', onAnswerResult)
+      socket.off('player_found', onPlayerFound)
       socket.off('round_end', onRoundEnd)
       socket.off('scores_update', onScoresUpdate)
       socket.off('game_over', onGameOver)
@@ -180,6 +189,7 @@ export function RoomProvider({ children }) {
     setScores([])
     setAnswerResult(null)
     setHasAnswered(false)
+    setFound([])
     setReveal(null)
     setHistory([])
     setGameOver(null)
@@ -203,6 +213,7 @@ export function RoomProvider({ children }) {
       scores,
       answerResult,
       hasAnswered,
+      found,
       reveal,
       history,
       gameOver,
@@ -225,6 +236,7 @@ export function RoomProvider({ children }) {
       scores,
       answerResult,
       hasAnswered,
+      found,
       reveal,
       history,
       gameOver,

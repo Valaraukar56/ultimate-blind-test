@@ -122,6 +122,8 @@ export function submitAnswer(io, code, socketId, answer) {
 
   // Feedback privé (rang + points) — sans révéler la bonne réponse aux autres.
   io.to(socketId).emit(ServerEvents.ANSWER_RESULT, { correct: true, points, rank })
+  // Annonce à toute la salle QUI a trouvé et son rang (sans révéler la réponse).
+  io.to(code).emit(ServerEvents.PLAYER_FOUND, { playerId: socketId, pseudo: player.pseudo, rank })
   // Scores en temps réel pour toute la salle.
   io.to(code).emit(ServerEvents.SCORES_UPDATE, { scores: leaderboard(room) })
 

@@ -7,6 +7,7 @@ import AudioStage from '../components/audio-stage.jsx'
 import CircularTimer from '../components/circular-timer.jsx'
 import Scoreboard from '../components/scoreboard.jsx'
 import History from '../components/history.jsx'
+import FoundList from '../components/found-list.jsx'
 
 export default function GamePage() {
   useRoomRedirect()
@@ -20,6 +21,7 @@ export default function GamePage() {
     hasAnswered,
     reveal,
     history,
+    found,
     submitAnswer,
   } = useRoom()
 
@@ -78,8 +80,11 @@ export default function GamePage() {
       </header>
 
       <div className="flex flex-1 flex-col gap-6 lg:flex-row">
-        {/* Historique (gauche) */}
-        <History items={history} />
+        {/* Colonne gauche : qui a trouvé (ce round) + historique */}
+        <div className="flex w-full flex-col gap-4 lg:w-64 lg:shrink-0">
+          <FoundList found={found} />
+          <History items={history} />
+        </div>
 
         {/* Zone centrale */}
         <section className="flex flex-1 flex-col items-center justify-center gap-8 rounded-3xl border border-violet-500/20 bg-slate-900/50 p-6 backdrop-blur">

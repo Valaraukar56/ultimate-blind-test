@@ -17,6 +17,7 @@ export const ServerEvents = {
   ROUND_START: 'round_start',
   TIMER_TICK: 'timer_tick',
   ANSWER_RESULT: 'answer_result',
+  PLAYER_FOUND: 'player_found',
   ROUND_END: 'round_end',
   SCORES_UPDATE: 'scores_update',
   GAME_OVER: 'game_over',

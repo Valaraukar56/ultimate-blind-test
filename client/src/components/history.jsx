@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 // un titre n'apparaît qu'une fois le round terminé).
 export default function History({ items }) {
   return (
-    <aside className="w-full rounded-2xl border border-violet-500/20 bg-slate-900/70 p-4 backdrop-blur lg:w-64">
+    <aside className="w-full rounded-2xl border border-violet-500/20 bg-slate-900/70 p-4 backdrop-blur">
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-violet-300">
         Déjà passées
       </h2>
