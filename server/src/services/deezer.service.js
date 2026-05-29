@@ -45,17 +45,19 @@ const THEME_CONFIG = {
     playlistQuery: '90s hits',
     playlistIds: [878989033, 1251125011, 1682663671],
   },
-  // Openings originaux : Demon Slayer, AoT, Naruto, One Piece, Evangelion...
+  // Openings cultes : Naruto, AoT, Demon Slayer, Tokyo Ghoul, Death Note...
+  // (Top 100 d'abord : beaucoup de titres mentionnent l'anime + mapping en repli)
   'Anime OST': {
     query: 'anime opening',
     playlistQuery: 'anime openings',
-    playlistIds: [7967291482, 13319386703, 9016993522],
+    playlistIds: [13319386703, 9016993522],
   },
-  // Zelda, Mario, Final Fantasy, Skyrim, Halo, Pokémon, Minecraft...
+  // Originaux (nom du jeu fiable dans l'album) : Witcher, Last of Us, Skyrim,
+  // Baldur's Gate, Final Fantasy, Zelda, Far Cry, Dead Cells, Minecraft...
   'Gaming OST': {
     query: 'video game soundtrack',
     playlistQuery: 'gaming soundtrack',
-    playlistIds: [14143509841, 14411862201, 7747193762],
+    playlistIds: [8520282922, 14411862201, 14411868781],
   },
   // Guetta, Tiësto, Garrix, Calvin Harris, Afrojack, Alok, Kygo...
   'EDM / Électro': {
