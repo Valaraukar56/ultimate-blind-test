@@ -162,7 +162,7 @@ export function RoomProvider({ children }) {
       if (!code) return { ok: false, error: 'Aucune salle active' }
       const res = await emitWithAck('submit_answer', { roomCode: code, answer })
       if (res.ok) {
-        setAnswerResult({ correct: res.correct, points: res.points })
+        setAnswerResult({ correct: res.correct, points: res.points, rank: res.rank })
         if (res.correct) setHasAnswered(true) // verrouille seulement si trouvé
       }
       return res

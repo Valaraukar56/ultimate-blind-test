@@ -115,22 +115,18 @@ export function submitAnswer(io, code, socketId, answer) {
     return { ok: true, correct: false, points: 0 }
   }
 
-  const elapsedMs = Date.now() - runtime.roundStartedAt
-  const points = computePoints(elapsedMs)
+  const rank = runtime.answers.size + 1 // ordre de bonne réponse (1 = premier)
+  const points = computePoints(rank)
   player.score += points
-  runtime.answers.set(socketId, { points, elapsedMs })
+  runtime.answers.set(socketId, { points, rank })
 
-  // Feedback privé au joueur — sans révéler la bonne réponse aux autres.
-  io.to(socketId).emit(ServerEvents.ANSWER_RESULT, { correct: true, points })
+  // Feedback privé (rang + points) — sans révéler la bonne réponse aux autres.
+  io.to(socketId).emit(ServerEvents.ANSWER_RESULT, { correct: true, points, rank })
   // Scores en temps réel pour toute la salle.
   io.to(code).emit(ServerEvents.SCORES_UPDATE, { scores: leaderboard(room) })
 
-  // Tout le monde a trouvé → on clôt le round en avance.
-  if (runtime.answers.size >= room.players.size) {
-    endRound(io, code)
-  }
-
-  return { ok: true, correct: true, points }
+  // Pas de fin anticipée : le chrono va au bout pour que tout le monde tente.
+  return { ok: true, correct: true, points, rank }
 }
 
 function endRound(io, code) {

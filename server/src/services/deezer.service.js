@@ -52,12 +52,13 @@ const THEME_CONFIG = {
     playlistQuery: 'anime openings',
     playlistIds: [13319386703, 9016993522],
   },
-  // Originaux (nom du jeu fiable dans l'album) : Witcher, Last of Us, Skyrim,
-  // Baldur's Gate, Final Fantasy, Zelda, Far Cry, Dead Cells, Minecraft...
+  // Thèmes ultra-reconnaissables (le titre EST le nom du jeu) : Mario, Zelda,
+  // Pokémon, Tetris, Final Fantasy, Skyrim, Chrono Trigger, God of War...
+  // (reprises iconiques + médleys Nintendo — choisis pour être devinables)
   'Gaming OST': {
     query: 'video game soundtrack',
     playlistQuery: 'gaming soundtrack',
-    playlistIds: [8520282922, 14411862201, 14411868781],
+    playlistIds: [7747193762, 2221238426],
   },
   // Guetta, Tiësto, Garrix, Calvin Harris, Afrojack, Alok, Kygo...
   'EDM / Électro': {

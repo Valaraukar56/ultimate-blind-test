@@ -119,7 +119,7 @@ export default function GamePage() {
                         }`}
                       >
                         {answerResult.correct
-                          ? `✅ Trouvé ! +${answerResult.points} pts`
+                          ? `✅ ${answerResult.rank ? ordinalFr(answerResult.rank) + ' !' : 'Trouvé !'} +${answerResult.points} pts`
                           : '❌ Raté ! Réécoute et retente…'}
                       </motion.p>
                     )}
@@ -134,6 +134,10 @@ export default function GamePage() {
       </div>
     </PageTransition>
   )
+}
+
+function ordinalFr(n) {
+  return n === 1 ? '1er' : `${n}e`
 }
 
 function RevealCard({ reveal }) {

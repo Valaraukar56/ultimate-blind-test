@@ -1,7 +1,10 @@
 // Logique pure du jeu : normalisation, distance de Levenshtein, scoring.
 // Sans effet de bord ni dépendance → testable isolément.
 
-export const BASE_POINTS = 1000
+// Points selon l'ORDRE de bonne réponse : 1er = le plus, puis décroissant.
+// (Le round va au bout du chrono : tout le monde peut tenter de trouver.)
+const RANK_POINTS = [1000, 800, 600, 400]
+const RANK_POINTS_FLOOR = 200
 
 // Petits mots ignorés dans le matching « un mot du nom » (évite « the », « les »…).
 const STOPWORDS = new Set([
@@ -134,12 +137,7 @@ export function isAnswerCorrect(answer, track, { matchFranchise = false } = {}) 
   return false
 }
 
-// 1000 pts de base + bonus de vitesse selon le temps écoulé.
-export function computePoints(elapsedMs) {
-  const seconds = elapsedMs / 1000
-  let bonus = 0
-  if (seconds < 5) bonus = 500
-  else if (seconds < 10) bonus = 300
-  else if (seconds < 20) bonus = 100
-  return BASE_POINTS + bonus
+// Points selon le rang de bonne réponse (1 = premier à trouver).
+export function computePoints(rank) {
+  return RANK_POINTS[rank - 1] ?? RANK_POINTS_FLOOR
 }
