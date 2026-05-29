@@ -20,7 +20,13 @@ const THEME_CONFIG = {
   'Années 90': { query: 'tubes années 90', playlistQuery: '90s hits' },
   'Anime OST': { query: 'anime opening', playlistQuery: 'anime openings' },
   'Gaming OST': { query: 'video game soundtrack', playlistQuery: 'gaming soundtrack' },
-  Techno: { query: 'techno', playlistQuery: 'techno' },
+  'EDM / Électro': {
+    query: 'edm',
+    playlistQuery: 'edm hits',
+    // Playlists éditoriales Deezer grand public (Guetta, Tiësto, Garrix, Calvin Harris,
+    // Afrojack, Alok, Kygo...). Hits Dance / Global Dance Hits / Dance Super Hits.
+    playlistIds: [687945565, 706093725, 11233152384],
+  },
   'Charts actuels': { query: 'top hits', playlistQuery: 'top france' },
 }
 
@@ -105,16 +111,30 @@ async function getPlaylistTracks(playlistId, limit = 100) {
 
 // 3) Pistes prêtes pour un round : playlist d'abord, recherche en repli.
 export async function getRandomTracksForRound(theme, count = 1) {
+  const { playlistIds } = resolveTheme(theme)
   let pool = []
 
-  try {
-    const playlist = await getRandomPlaylist(theme)
-    if (playlist) pool = await getPlaylistTracks(playlist.id)
-  } catch (err) {
-    console.warn(`[deezer] playlist KO pour "${theme}" : ${err.message}`)
+  // 1) Playlists épinglées (qualité garantie) si le thème en définit.
+  if (playlistIds?.length) {
+    const id = playlistIds[Math.floor(Math.random() * playlistIds.length)]
+    try {
+      pool = await getPlaylistTracks(id)
+    } catch (err) {
+      console.warn(`[deezer] playlist épinglée ${id} KO : ${err.message}`)
+    }
   }
 
-  // Repli (ou complément) via la recherche par genre.
+  // 2) Sinon : une playlist thématique aléatoire trouvée par recherche.
+  if (pool.length < count) {
+    try {
+      const playlist = await getRandomPlaylist(theme)
+      if (playlist) pool = pool.concat(await getPlaylistTracks(playlist.id))
+    } catch (err) {
+      console.warn(`[deezer] playlist KO pour "${theme}" : ${err.message}`)
+    }
+  }
+
+  // 3) Repli via la recherche par genre.
   if (pool.length < count) {
     try {
       pool = pool.concat(await searchTracksByGenre(theme))

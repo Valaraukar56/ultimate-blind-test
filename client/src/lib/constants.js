@@ -7,6 +7,6 @@ export const THEMES = [
   'Années 90',
   'Anime OST',
   'Gaming OST',
-  'Techno',
+  'EDM / Électro',
   'Charts actuels',
 ]
