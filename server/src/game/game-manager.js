@@ -7,6 +7,9 @@ import { computePoints, isAnswerCorrect } from './scoring.js'
 const ROUND_DURATION_SEC = env.roundDurationSec
 const BETWEEN_ROUNDS_MS = 5000 // pause d'affichage de la réponse entre deux rounds
 
+// Thèmes où le nom du jeu / de l'anime est accepté comme bonne réponse.
+const FRANCHISE_THEMES = new Set(['Gaming OST', 'Anime OST'])
+
 // Runtime de jeu par salle (timers, round courant, réponses).
 // Distinct du roomStore : les scores cumulés vivent sur room.players.
 const games = new Map() // code -> runtime
@@ -102,7 +105,9 @@ export function submitAnswer(io, code, socketId, answer) {
   if (!player) return { ok: false, error: 'Joueur introuvable' }
 
   const track = runtime.tracks[runtime.currentIndex]
-  const correct = isAnswerCorrect(answer, track)
+  const correct = isAnswerCorrect(answer, track, {
+    matchFranchise: FRANCHISE_THEMES.has(room.theme),
+  })
 
   // Mauvaise réponse : feedback privé, mais le joueur peut retenter.
   if (!correct) {
@@ -143,6 +148,7 @@ function endRound(io, code) {
     correctAnswer: {
       title: track.title,
       artist: track.artist,
+      album: track.album,
       cover_url: track.cover_url,
     },
     scores: leaderboard(room),

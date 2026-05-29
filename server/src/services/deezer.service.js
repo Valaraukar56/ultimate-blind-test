@@ -97,6 +97,7 @@ function normalizeTrack(track) {
     id: track.id,
     title: track.title_short ?? track.title,
     artist: track.artist?.name ?? 'Inconnu',
+    album: track.album?.title ?? null, // contient souvent le nom du jeu / de l'anime
     preview_url: track.preview || null,
     cover_url: track.album?.cover_medium ?? track.album?.cover_big ?? null,
   }

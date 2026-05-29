@@ -151,6 +151,9 @@ function RevealCard({ reveal }) {
         <p className="text-xs uppercase tracking-widest text-violet-300">Réponse</p>
         <p className="truncate text-lg font-bold">{answer?.title}</p>
         <p className="truncate text-sm text-fuchsia-300">{answer?.artist}</p>
+        {answer?.album && answer.album !== answer.title && (
+          <p className="truncate text-xs text-slate-400">{answer.album}</p>
+        )}
       </div>
     </motion.div>
   )

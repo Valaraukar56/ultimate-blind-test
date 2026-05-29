@@ -31,6 +31,9 @@ export default function History({ items }) {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{item.title}</p>
                   <p className="truncate text-xs text-fuchsia-300">{item.artist}</p>
+                  {item.album && item.album !== item.title && (
+                    <p className="truncate text-[10px] text-slate-500">{item.album}</p>
+                  )}
                 </div>
               </motion.li>
             ))}
