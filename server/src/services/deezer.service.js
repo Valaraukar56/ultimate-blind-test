@@ -11,23 +11,64 @@ const CACHE_TTL_MS = 60 * 60 * 1000 // 1 h
 // Cache mémoire simple (clé = URL) pour ne pas respammer l'API.
 const cache = new Map() // url -> { data, expires }
 
-// Correspondance thème → requêtes Deezer. Thème inconnu : on utilise son libellé.
+// Correspondance thème → recherche Deezer + playlists épinglées.
+// playlistIds : playlists Deezer (surtout éditoriales) remplies de tubes ULTRA connus,
+// tirées au sort à chaque partie. query/playlistQuery servent de repli.
 const THEME_CONFIG = {
-  'Pop française': { query: 'pop française', playlistQuery: 'pop française' },
-  Rock: { query: 'rock classics', playlistQuery: 'rock' },
-  'Rap FR': { query: 'rap français', playlistQuery: 'rap fr' },
-  'Années 80': { query: 'tubes années 80', playlistQuery: '80s hits' },
-  'Années 90': { query: 'tubes années 90', playlistQuery: '90s hits' },
-  'Anime OST': { query: 'anime opening', playlistQuery: 'anime openings' },
-  'Gaming OST': { query: 'video game soundtrack', playlistQuery: 'gaming soundtrack' },
+  // Goldman, Stromae, Angèle, Aya Nakamura, Mylène Farmer, Indila, France Gall...
+  'Pop française': {
+    query: 'variété française',
+    playlistQuery: 'variété française',
+    playlistIds: [1420459465, 2484938464, 7752025662],
+  },
+  // Queen, AC/DC, Nirvana, Guns N' Roses, Muse, Foo Fighters, Rolling Stones...
+  Rock: {
+    query: 'rock classics',
+    playlistQuery: 'rock',
+    playlistIds: [1306931615, 752286631, 3126664682],
+  },
+  // Jul, Booba, PNL, Ninho, Niska, Damso, Orelsan, NTM, IAM...
+  'Rap FR': {
+    query: 'rap français',
+    playlistQuery: 'rap fr',
+    playlistIds: [5175061384, 6568026624, 1404470955],
+  },
+  // MJ, Madonna, Queen, a-ha, Police + variété FR (Indochine, Goldman...)
+  'Années 80': {
+    query: 'tubes années 80',
+    playlistQuery: '80s hits',
+    playlistIds: [867825522, 1268089951, 1163842311],
+  },
+  // Nirvana, Spice Girls, Oasis, Britney + dance/FR (IAM, Manau, Céline Dion...)
+  'Années 90': {
+    query: 'tubes années 90',
+    playlistQuery: '90s hits',
+    playlistIds: [878989033, 1251125011, 1682663671],
+  },
+  // Openings originaux : Demon Slayer, AoT, Naruto, One Piece, Evangelion...
+  'Anime OST': {
+    query: 'anime opening',
+    playlistQuery: 'anime openings',
+    playlistIds: [7967291482, 13319386703, 9016993522],
+  },
+  // Zelda, Mario, Final Fantasy, Skyrim, Halo, Pokémon, Minecraft...
+  'Gaming OST': {
+    query: 'video game soundtrack',
+    playlistQuery: 'gaming soundtrack',
+    playlistIds: [14143509841, 14411862201, 7747193762],
+  },
+  // Guetta, Tiësto, Garrix, Calvin Harris, Afrojack, Alok, Kygo...
   'EDM / Électro': {
     query: 'edm',
     playlistQuery: 'edm hits',
-    // Playlists éditoriales Deezer grand public (Guetta, Tiësto, Garrix, Calvin Harris,
-    // Afrojack, Alok, Kygo...). Hits Dance / Global Dance Hits / Dance Super Hits.
     playlistIds: [687945565, 706093725, 11233152384],
   },
-  'Charts actuels': { query: 'top hits', playlistQuery: 'top france' },
+  // Top du moment France + monde (Weeknd, Dua Lipa, Aya Nakamura, GIMS...)
+  'Charts actuels': {
+    query: 'top hits',
+    playlistQuery: 'top france',
+    playlistIds: [3155776842, 1109890291, 14344427541],
+  },
 }
 
 function resolveTheme(theme) {
