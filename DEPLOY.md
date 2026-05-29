@@ -1,89 +1,99 @@
-# 🚀 Déploiement sur VPS — à côté d'un site existant (Caddy déjà présent)
+# 🚀 Déploiement VPS — à côté de `combo` (Caddy existant, sans Docker)
 
-Ton VPS fait déjà tourner **Caddy** (sur 80/443) devant ton site `combo`. On **réutilise ce Caddy** : on n'en lance pas un second. Le blind test s'ajoute comme un site supplémentaire (un « autre onglet »).
+Contexte réel du VPS (`51.68.129.168`) :
+
+- **Caddy** tourne déjà sur l'hôte (80/443) → on le réutilise, on n'en lance pas un second.
+- **`combo`** écoute sur le **port 3001** → le blind test prend le **port 3002**.
+- **Docker absent**, Node v24 présent → on lance le serveur en **service systemd** (comme combo).
 
 ```
 Caddy (hôte, 80/443)
- ├── ton site combo                         (inchangé)
- └── blindtest.<IP>.sslip.io   ──►  build React (statique) + proxy /api,/socket.io  ──►  conteneur Node 127.0.0.1:3001
+ ├── 51.68.129.168.sslip.io           → combo (localhost:3001)   [inchangé]
+ └── blindtest.51.68.129.168.sslip.io → /srv/blindtest (statique) + proxy /api,/socket.io → localhost:3002
 ```
 
-- **Serveur** du jeu : conteneur Docker, écoute seulement sur `127.0.0.1:3001` (non public).
-- **Client** : build React servi directement par ton Caddy.
-- **HTTPS gratuit sans domaine** : `sslip.io` fournit un sous-domaine lié à ton IP.
+## A. Sur ton PC (une seule fois) — pousser le code sur GitHub
 
-## 0. Récupérer ton IP publique
-
-```bash
-curl -4 icanhazip.com
+```powershell
+# Dépôt déjà init + commité par Claude. Crée un dépôt VIDE sur github.com, puis :
+git remote add origin https://github.com/TON_USER/ultimate-blind-test.git
+git branch -M main
+git push -u origin main
 ```
 
-Note-la et remplace les points par des tirets pour sslip. Ex. `203.0.113.10` → `blindtest.203-0-113-10.sslip.io`.
+## B. Sur le VPS
 
-## 1. Récupérer le code
+### 1. Cloner
 
 ```bash
-git clone <ton-repo> blindtest && cd blindtest
-cp .env.example .env        # valeurs par défaut OK
+cd ~
+git clone https://github.com/TON_USER/ultimate-blind-test.git blindtest
+cd blindtest
 ```
 
-## 2. Lancer le serveur (Docker)
+### 2. Serveur (systemd, port 3002)
 
 ```bash
-docker compose up -d --build
-# vérif : doit répondre {"status":"ok",...}
-curl http://127.0.0.1:3001/api/health
+# dépendances de prod (sans Prisma generate, DB branchée plus tard)
+cd ~/blindtest/server && npm install --omit=dev --ignore-scripts && cd ~/blindtest
+
+# vérifier que 3002 est libre (ne doit rien afficher)
+ss -tlnp | grep :3002
+
+# installer + démarrer le service
+sudo cp deploy/blindtest.service /etc/systemd/system/blindtest.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now blindtest
+
+# test : doit répondre {"status":"ok",...}
+curl http://127.0.0.1:3002/api/health
 ```
 
-## 3. Builder le client et le déposer là où Caddy le servira
-
-Node est déjà présent sur le VPS (ton site combo l'utilise).
+### 3. Client (build statique servi par Caddy)
 
 ```bash
-cd client
-npm install
-npm run build
+cd ~/blindtest/client && npm install && npm run build && cd ~/blindtest
 sudo mkdir -p /srv/blindtest
-sudo cp -r dist/* /srv/blindtest/
-cd ..
+sudo cp -r client/dist/* /srv/blindtest/
 ```
 
-> Pas envie d'installer les deps du client sur l'hôte ? On peut builder dans Docker et extraire le `dist/` — demande-moi.
+### 4. Caddy (ajoute le bloc blind test, combo inchangé)
 
-## 4. Ajouter le bloc dans TON Caddyfile
-
-Le bloc prêt à coller est dans [deploy/blindtest.caddy](deploy/blindtest.caddy). Ouvre `/etc/caddy/Caddyfile`, **ajoute ce bloc à la fin** (ne touche pas à tes blocs combo), en remplaçant l'adresse par ton `blindtest.<IP-tirets>.sslip.io`.
+Le fichier `deploy/blindtest.caddy` contient **le Caddyfile complet** (bloc combo + bloc blind test). Il reprend ta conf actuelle telle quelle.
 
 ```bash
-sudo nano /etc/caddy/Caddyfile
+# sauvegarde puis remplacement
+sudo cp /etc/caddy/Caddyfile /etc/caddy/Caddyfile.bak
+sudo cp deploy/blindtest.caddy /etc/caddy/Caddyfile
 sudo caddy validate --config /etc/caddy/Caddyfile
 sudo systemctl reload caddy
 ```
 
-Accès : `https://blindtest.<IP-tirets>.sslip.io` 🎉 (Caddy génère le certificat tout seul au premier accès).
+➡️ **`https://blindtest.51.68.129.168.sslip.io`** — HTTPS auto au premier accès. `combo` reste sur `https://51.68.129.168.sslip.io`.
 
-## 5. Mettre à jour plus tard
+## Mettre à jour plus tard
 
 ```bash
-git pull
-docker compose up -d --build          # serveur
-cd client && npm run build && sudo cp -r dist/* /srv/blindtest/ && cd ..   # client
+cd ~/blindtest && git pull
+# serveur
+cd server && npm install --omit=dev --ignore-scripts && cd ..
+sudo systemctl restart blindtest
+# client
+cd client && npm run build && cd ..
+sudo cp -r client/dist/* /srv/blindtest/
 ```
 
 ## Dépannage
 
-| Symptôme | Piste |
+| Symptôme | Commande / piste |
 |---|---|
-| `curl 127.0.0.1:3001/api/health` ne répond pas | `docker compose logs server` |
-| Page blanche | `/srv/blindtest/index.html` existe ? droits de lecture pour Caddy ? |
-| « Connexion… » jamais verte | le proxy WebSocket : vérifier le bloc `@backend` (chemins `/socket.io/*`) |
-| Pas de HTTPS | l'adresse du bloc est bien un domaine sslip (pas `:80`) ; ports 80/443 ouverts |
-| `caddy validate` refuse | conflit avec un bloc existant → colle-moi ton Caddyfile, je l'adapte |
+| serveur down | `sudo systemctl status blindtest` · `journalctl -u blindtest -f` |
+| `/api/health` muet | port 3002 occupé ? `ss -tlnp \| grep :3002` |
+| page blanche | `/srv/blindtest/index.html` présent + lisible par Caddy |
+| « Connexion… » jamais verte | bloc `@backend` (`/socket.io/*`) bien présent ; `journalctl -u caddy -f` |
+| `caddy validate` refuse | revenir à la sauvegarde : `sudo cp /etc/caddy/Caddyfile.bak /etc/caddy/Caddyfile && sudo systemctl reload caddy` |
+| combo cassé | idem : restaurer `.bak` ci-dessus |
 
-## Alternative sans sslip (HTTP sur un port)
+## Postgres plus tard
 
-Si tu préfères éviter sslip : mets `:8090` comme adresse dans le bloc Caddy → accès `http://TON_IP:8090` (ouvre le port 8090 au firewall). Sur HTTP, le bouton « copier le code » du lobby est inactif (API navigateur réservée au HTTPS), sans gravité.
-
-## Brancher Postgres plus tard
-
-État actuellement en mémoire (redémarrage = parties perdues). Pour persister : ajouter un service `postgres`, passer `DATABASE_URL` au serveur, retirer `--ignore-scripts` du `server/Dockerfile` (pour `prisma generate`), puis coder la persistance.
+État en mémoire pour l'instant (redémarrage `blindtest` = parties en cours perdues). Pour persister : installer Postgres, passer `DATABASE_URL` au service (dans le `.service`), `npx prisma migrate deploy`, puis coder la persistance.
