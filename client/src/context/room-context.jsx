@@ -39,6 +39,7 @@ export function RoomProvider({ children }) {
   const [answerResult, setAnswerResult] = useState(null) // { correct, points }
   const [hasAnswered, setHasAnswered] = useState(false)
   const [reveal, setReveal] = useState(null) // { correctAnswer, ... }
+  const [history, setHistory] = useState([]) // morceaux déjà passés
   const [gameOver, setGameOver] = useState(null) // { finalScores, winner }
   const [gameError, setGameError] = useState(null)
 
@@ -62,6 +63,7 @@ export function RoomProvider({ children }) {
       setReveal(null)
       setGameError(null)
       setScores([])
+      setHistory([])
     }
     function onRoundStart(payload) {
       setRound(payload)
@@ -79,10 +81,13 @@ export function RoomProvider({ children }) {
       // Seule une bonne réponse verrouille la saisie ; sinon on peut retenter.
       if (payload.correct) setHasAnswered(true)
     }
-    function onRoundEnd({ correctAnswer, scores: board }) {
+    function onRoundEnd({ roundNumber, correctAnswer, scores: board }) {
       setReveal({ correctAnswer })
       setScores(board ?? [])
       setPhase('reveal')
+      if (correctAnswer) {
+        setHistory((prev) => [...prev, { roundNumber, ...correctAnswer }])
+      }
     }
     function onScoresUpdate({ scores: board }) {
       setScores(board ?? [])
@@ -176,6 +181,7 @@ export function RoomProvider({ children }) {
     setAnswerResult(null)
     setHasAnswered(false)
     setReveal(null)
+    setHistory([])
     setGameOver(null)
     setGameError(null)
     // Reconnexion : le serveur retire l'ancien socket (disconnect),
@@ -198,6 +204,7 @@ export function RoomProvider({ children }) {
       answerResult,
       hasAnswered,
       reveal,
+      history,
       gameOver,
       gameError,
       createRoom,
@@ -219,6 +226,7 @@ export function RoomProvider({ children }) {
       answerResult,
       hasAnswered,
       reveal,
+      history,
       gameOver,
       gameError,
       createRoom,

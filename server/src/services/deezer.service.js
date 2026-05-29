@@ -20,6 +20,7 @@ const THEME_CONFIG = {
   'Années 90': { query: 'tubes années 90', playlistQuery: '90s hits' },
   'Anime OST': { query: 'anime opening', playlistQuery: 'anime openings' },
   'Gaming OST': { query: 'video game soundtrack', playlistQuery: 'gaming soundtrack' },
+  Techno: { query: 'techno', playlistQuery: 'techno' },
   'Charts actuels': { query: 'top hits', playlistQuery: 'top france' },
 }
 

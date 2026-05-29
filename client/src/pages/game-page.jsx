@@ -6,6 +6,7 @@ import PageTransition from '../components/page-transition.jsx'
 import AudioStage from '../components/audio-stage.jsx'
 import CircularTimer from '../components/circular-timer.jsx'
 import Scoreboard from '../components/scoreboard.jsx'
+import History from '../components/history.jsx'
 
 export default function GamePage() {
   useRoomRedirect()
@@ -18,6 +19,7 @@ export default function GamePage() {
     answerResult,
     hasAnswered,
     reveal,
+    history,
     submitAnswer,
   } = useRoom()
 
@@ -75,7 +77,10 @@ export default function GamePage() {
         <span className="text-xs uppercase tracking-widest text-slate-500">Devine vite !</span>
       </header>
 
-      <div className="flex flex-1 flex-col gap-6 md:flex-row">
+      <div className="flex flex-1 flex-col gap-6 lg:flex-row">
+        {/* Historique (gauche) */}
+        <History items={history} />
+
         {/* Zone centrale */}
         <section className="flex flex-1 flex-col items-center justify-center gap-8 rounded-3xl border border-violet-500/20 bg-slate-900/50 p-6 backdrop-blur">
           <CircularTimer remaining={remaining} total={round.duration} />
