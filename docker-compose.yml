@@ -1,0 +1,20 @@
+# Déploiement : UNIQUEMENT le serveur Node (Express + Socket.io).
+# Ton Caddy existant (sur l'hôte) sert le client et proxifie vers ce conteneur.
+# Le serveur n'écoute que sur 127.0.0.1:3001 → non exposé publiquement.
+# Postgres n'est pas inclus (état en mémoire pour l'instant).
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      CLIENT_URL: ${CLIENT_URL:-*}
+      ROUNDS_PER_GAME: ${ROUNDS_PER_GAME:-10}
+      ROUND_DURATION_SEC: ${ROUND_DURATION_SEC:-30}
+    ports:
+      # Bind localhost uniquement : seul le Caddy de l'hôte peut l'atteindre.
+      - "127.0.0.1:3001:3001"
+    restart: unless-stopped

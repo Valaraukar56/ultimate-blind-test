@@ -1,0 +1,27 @@
+# /etc/caddy/Caddyfile COMPLET pour ton VPS (combo INCHANGÉ + blind test).
+# Remplace entièrement le contenu de /etc/caddy/Caddyfile par ceci, puis :
+#   sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy
+
+# --- Ton site existant (inchangé) ---
+51.68.129.168.sslip.io {
+	reverse_proxy localhost:3001
+}
+
+# --- Blind test (nouveau, port 3002) ---
+blindtest.51.68.129.168.sslip.io {
+	encode gzip
+
+	# API REST + WebSocket Socket.io -> serveur Node (systemd, port 3002).
+	# Caddy gère l'upgrade WebSocket automatiquement.
+	@backend path /api/* /socket.io/*
+	handle @backend {
+		reverse_proxy localhost:3002
+	}
+
+	# Build React statique + fallback SPA (/lobby/:code, /game/:code, ...).
+	handle {
+		root * /srv/blindtest
+		try_files {path} /index.html
+		file_server
+	}
+}

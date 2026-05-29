@@ -1,0 +1,84 @@
+// Schéma Prisma — Blind Test multijoueur
+// Docs : https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoomStatus {
+  WAITING
+  PLAYING
+  FINISHED
+}
+
+model Room {
+  id        String     @id @default(cuid())
+  code      String     @unique
+  hostId    String?
+  status    RoomStatus @default(WAITING)
+  theme     String
+  createdAt DateTime   @default(now())
+
+  players Player[]
+  rounds  Round[]
+
+  @@map("rooms")
+}
+
+model Player {
+  id        String   @id @default(cuid())
+  pseudo    String
+  socketId  String?
+  score     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  scores Score[]
+
+  @@index([roomId])
+  @@map("players")
+}
+
+model Round {
+  id         String   @id @default(cuid())
+  trackId    String
+  trackTitle String
+  artist     String
+  order      Int
+  createdAt  DateTime @default(now())
+
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  scores Score[]
+
+  // Un seul round par position dans une salle
+  @@unique([roomId, order])
+  @@index([roomId])
+  @@map("rounds")
+}
+
+model Score {
+  id         String   @id @default(cuid())
+  points     Int      @default(0)
+  answeredAt DateTime @default(now())
+
+  playerId String
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  roundId String
+  round   Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  // Un seul score par joueur et par round
+  @@unique([playerId, roundId])
+  @@index([playerId])
+  @@index([roundId])
+  @@map("scores")
+}

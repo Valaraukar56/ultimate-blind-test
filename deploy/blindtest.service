@@ -1,0 +1,25 @@
+# Service systemd du serveur de blind test (comme combo, sans Docker).
+# À copier dans /etc/systemd/system/blindtest.service
+#
+# Port 3002 : 3001 est déjà pris par combo.
+# Adapte WorkingDirectory si tu clones ailleurs que /home/ubuntu/blindtest.
+
+[Unit]
+Description=Ultimate Blind Test - serveur Node (Express + Socket.io)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/blindtest/server
+Environment=NODE_ENV=production
+Environment=PORT=3002
+Environment=CLIENT_URL=*
+Environment=ROUNDS_PER_GAME=10
+Environment=ROUND_DURATION_SEC=30
+ExecStart=/usr/bin/node src/index.js
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
